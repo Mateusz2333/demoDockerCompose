@@ -1,32 +1,34 @@
-version: '3'
-services:
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql-db
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=mydb
-    ports:
-      - "3306:3306"
-    networks:
-      - my-network
-    volumes:
-      - mysql-data:/var/lib/mysql
+version: '3.8'
 
-  spring-boot-app:
-    build: .
-    container_name: spring-boot-app
+services:
+  # Kontener aplikacji
+  app:
+    image: demo-app  # Używa obrazu demo-app, który wcześniej zbudujesz
+    container_name: demo-app
     ports:
-      - "8080:8080"
-    environment:
-      - JAVA_OPTS=
-    depends_on:
-      - mysql-db
+      - "8080:8080"  # Mapowanie portów z kontenera na hosta (port 8080)
     networks:
-      - my-network
+      - demo-network  # Kontener podłączony do sieci demo-network
+    depends_on:
+      - db  # Aplikacja zależy od kontenera bazy danych
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/demo_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+
+  # Kontener bazy danych
+  db:
+    image: mysql:8.0  # Używa obrazu MySQL w wersji 8.0
+    container_name: demo-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Ustawienie hasła roota
+      MYSQL_DATABASE: demo_db  # Tworzenie bazy danych demo_db
+    networks:
+      - demo-network  # Kontener podłączony do tej samej sieci
+    ports:
+      - "3306:3306"  # Mapowanie portu bazy danych z kontenera na hosta
 
 networks:
-  my-network:
+  demo-network:
+    driver: bridge  # Używanie wirtualnej sieci typu bridge
 
-volumes:
-  mysql-data:
